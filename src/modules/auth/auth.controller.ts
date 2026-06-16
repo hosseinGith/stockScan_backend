@@ -29,11 +29,9 @@ export class AuthController {
   @Body() body: LoginDto,
   @Res({ passthrough: true }) response: Response,
  ) {
-  const { id } = await this.authService.login(body);
-  console.log(id);
-
-  const token = this.authService.createTokens({ id }, response);
-  return token;
+  const user = await this.authService.login(body);
+  const token = this.authService.createTokens({ id: user.id }, response);
+  return { user, token };
  }
  @Post('/refresh-token')
  async refreshToken(

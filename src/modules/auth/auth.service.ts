@@ -60,6 +60,7 @@ export class AuthService {
   return user;
  }
  async register(body: RegisterDto) {
+    
   const user = await this.users.register(body);
   return user;
  }

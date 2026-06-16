@@ -4,8 +4,6 @@ import { PASSWORD_PATTERN, USERNAME_PATTERN } from './login.dto';
 // signup.dto.ts
 export default class RegisterDto {
  @IsString()
- email: string;
- @IsString()
  last_name: string;
  @IsString()
  first_name: string;
