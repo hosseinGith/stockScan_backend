@@ -4,27 +4,40 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { Products } from './entities/products.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
+import { CategoriesService } from '../categories/categories.service';
 
 @Injectable()
 export class ProductsService {
  constructor(
   @InjectRepository(Products)
   private readonly products: Repository<Products>,
+  private readonly categories: CategoriesService,
  ) {}
+ /**
+  * this method create and update a product
+  * @param createProductDto
+  *
+  * @returns
+  */
  async create(createProductDto: CreateProductDto) {
   const isExistingProduct = await this.products.findOneBy({
    id: createProductDto.barcode,
   });
   // update if existing
   if (isExistingProduct) {
-   const updateStatus = await this.products.update(
+   const updateStatus = await this.update(
     isExistingProduct.id,
     createProductDto,
    );
    return updateStatus;
   }
-  // create
-  const product = this.products.create(createProductDto);
+  const category = await this.categories.findOrCreate(
+   {
+    where: { name: createProductDto.category },
+   },
+   { name: createProductDto.category },
+  );
+  const product = this.products.create({ ...createProductDto, category });
   await this.products.save(product);
   return product;
  }
@@ -42,7 +55,16 @@ export class ProductsService {
  }
 
  async update(id: string, updateProductDto: UpdateProductDto) {
-  const updateStatus = await this.products.update(id, updateProductDto);
+  const category = await this.categories.findOrCreate(
+   {
+    where: { name: updateProductDto.category },
+   },
+   { name: updateProductDto.category },
+  );
+  const updateStatus = await this.products.update(id, {
+   ...updateProductDto,
+   category,
+  });
   return updateStatus.affected;
  }
 
