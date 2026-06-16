@@ -12,6 +12,7 @@ import { AuthService } from './auth.service';
 import LoginDto from './dto/login.dto';
 import { HashUserData } from '../../shared/pipes/hash-user-data.pipe';
 import { type Request, type Response } from 'express';
+import RegisterDto from './dto/register.dto';
 
 @ApiTags('Authentication')
 @Controller('/api/auth')
@@ -19,7 +20,7 @@ import { type Request, type Response } from 'express';
 export class AuthController {
  constructor(private readonly authService: AuthService) {}
  @Post('/register')
- register(@Body() body: LoginDto) {
+ register(@Body() body: RegisterDto) {
   return this.authService.register(body);
  }
 
@@ -28,11 +29,9 @@ export class AuthController {
   @Body() body: LoginDto,
   @Res({ passthrough: true }) response: Response,
  ) {
-  const { id } = await this.authService.login(body);
-  console.log(id);
-
-  const token = this.authService.createTokens({ id }, response);
-  return token;
+  const user = await this.authService.login(body);
+  const token = this.authService.createTokens({ id: user.id }, response);
+  return { user, token };
  }
  @Post('/refresh-token')
  async refreshToken(

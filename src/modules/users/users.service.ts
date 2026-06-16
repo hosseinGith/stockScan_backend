@@ -19,7 +19,7 @@ import { UserDtoAdd } from './dto/user-add.dto';
 import UserUpdateDto from './dto/user-update.dto';
 import { CryptoService } from '../crypto/crypto.service';
 import { Role } from './types';
-import { UserDtoAddAuth } from './dto/user-add-auth.dto';
+import RegisterDto from '../auth/dto/register.dto';
 @Injectable()
 export class UsersService {
  constructor(
@@ -112,12 +112,12 @@ export class UsersService {
   }
  }
  // auth public
- async register(body: UserDtoAddAuth) {
+ async register(body: RegisterDto) {
   const hashedUsername = this.cryptoService.hashForSearch(
    this.cryptoService.decrypt(body.username),
   );
   const existingUser = await this.users.findOne({
-   where: { username_hashed: hashedUsername },
+   where: [{ username_hashed: hashedUsername }],
   });
 
   if (existingUser) {
