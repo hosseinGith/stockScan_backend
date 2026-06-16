@@ -17,9 +17,9 @@ import {
 } from 'typeorm';
 import { UserDtoAdd } from './dto/user-add.dto';
 import UserUpdateDto from './dto/user-update.dto';
-import UserUpdatePublicDto from './dto/user-update-public.dto';
 import { CryptoService } from '../crypto/crypto.service';
 import { Role } from './types';
+import { UserDtoAddAuth } from './dto/user-add-auth.dto';
 @Injectable()
 export class UsersService {
  constructor(
@@ -67,13 +67,13 @@ export class UsersService {
   if (!userData) throw new UnauthorizedException();
   return userData;
  }
-
+ // admin
  async create(body: UserDtoAdd) {
-  const hashedNumber = this.cryptoService.hashForSearch(
-   this.cryptoService.decrypt(body.number),
+  const hashedUsername = this.cryptoService.hashForSearch(
+   this.cryptoService.decrypt(body.username),
   );
   const existingUser = await this.users.findOne({
-   where: { number_hash: hashedNumber },
+   where: { username_hashed: hashedUsername },
   });
 
   if (existingUser) {
@@ -92,14 +92,15 @@ export class UsersService {
    const user = queryRunner.manager.create(Users, {
     ...body,
     is_active,
-    number_hash: this.cryptoService.hashForSearch(body.number),
+    password: await this.cryptoService.hashPassword(body.password),
+    username_hashed: this.cryptoService.hashForSearch(body.username),
    });
    const savedUser = await queryRunner.manager.save(Users, user);
 
    await queryRunner.commitTransaction();
 
    return {
-    user: { ...savedUser, number: body.number, password: undefined },
+    user: { ...savedUser, username: body.username, password: undefined },
    };
   } catch (e) {
    console.error(e);
@@ -110,43 +111,40 @@ export class UsersService {
    await queryRunner.release();
   }
  }
- private async updateCheckUserData(
-  id: string,
-  body: {
-   number?: string;
-   national_id?: string;
-  },
- ) {
-  const hashedNumber = this.cryptoService.hashForSearch(
-   this.cryptoService.decrypt(body?.number),
+ // auth public
+ async register(body: UserDtoAddAuth) {
+  const hashedUsername = this.cryptoService.hashForSearch(
+   this.cryptoService.decrypt(body.username),
   );
-  if (body?.number)
-   if (await this.users.findOneBy({ number_hash: hashedNumber }))
-    throw new BadRequestException(
-     'این نام کاربری استفاده شده است. لطفاً نام کاربری دیگری انتخاب کنید.',
-     'number',
-    );
+  const existingUser = await this.users.findOne({
+   where: { username_hashed: hashedUsername },
+  });
 
-  if (body?.national_id)
-   if (await this.users.findOneBy({ national_id: body.national_id }))
-    throw new BadRequestException('این کد ملی استفاده شده است.', 'national_id');
-
-  const user = await this.users.findOneBy({ id });
-  const fieldsToUpdate = Object.keys(body).length;
-
-  if (fieldsToUpdate === 0) {
-   throw new BadRequestException('هیچ فیلدی برای به‌روزرسانی ارسال نشده است.');
+  if (existingUser) {
+   throw new BadRequestException(
+    'این نام کاربری استفاده شده است. لطفاً نام کاربری دیگری انتخاب کنید.',
+   );
   }
-  return user;
+
+  const user = this.users.create({
+   ...body,
+   password: await this.cryptoService.hashPassword(body.password),
+   is_active: false,
+   username_hashed: this.cryptoService.hashForSearch(
+    this.cryptoService.decrypt(body.username),
+   ),
+  });
+  await this.users.save(user);
+
+  return {
+   ...user,
+   username: body.username,
+   password: undefined,
+   is_active: undefined,
+  };
  }
  async update(id: string, body: UserUpdateDto) {
   return (await this.users.update({ id }, body)).affected === 1;
- }
- async updateUserData(body: UserUpdatePublicDto, id: string) {
-  const user = await this.updateCheckUserData(id, body);
-  if (user)
-   return (await this.users.update({ id: user.id }, body)).affected === 1;
-  throw new NotFoundException();
  }
  async remove(id: string) {
   if (!id) throw new BadRequestException('id not found', 'id');

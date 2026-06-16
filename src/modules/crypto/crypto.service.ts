@@ -1,11 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { createCipheriv, createDecipheriv, createHmac, randomBytes } from 'node:crypto';
+import {
+ createCipheriv,
+ createDecipheriv,
+ createHmac,
+ randomBytes,
+} from 'node:crypto';
+import { compare, hash } from 'bcrypt';
 
 @Injectable()
 export class CryptoService {
  private readonly algorithm = 'aes-256-cbc';
  private readonly secretKey: Buffer;
-
+ private readonly saltRounds = 10;
  constructor() {
   const keyHex = process.env.ENCRYPTION_KEY;
   if (!keyHex || keyHex.length !== 64) {
@@ -37,5 +43,12 @@ export class CryptoService {
   return createHmac('sha256', process.env.SEARCH_HMAC_KEY)
    .update(text.toLowerCase().trim())
    .digest('hex');
+ }
+ async hashPassword(password: string): Promise<string> {
+  return hash(password, this.saltRounds);
+ }
+
+ async comparePassword(password: string, hash: string): Promise<boolean> {
+  return compare(password, hash);
  }
 }

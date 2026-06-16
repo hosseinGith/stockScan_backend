@@ -12,6 +12,8 @@ import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import * as dotenv from 'dotenv';
 import { AuthModule } from './modules/auth/auth.module';
 import { CryptoModule } from './modules/crypto/crypto.module';
+import { ProductsModule } from './modules/products/products.module';
+import { CategoriesModule } from './modules/categories/categories.module';
 
 dotenv.config();
 @Module({
@@ -33,14 +35,14 @@ dotenv.config();
    database: process.env?.db_database,
    entities: [__dirname + '/**/*.entity{.ts,.js}'],
    namingStrategy: new SnakeNamingStrategy(),
-   synchronize: true,
-   dropSchema: true,
   }),
 
   AuthModule,
   UsersModule,
   AuditLogsModule,
   CryptoModule,
+  ProductsModule,
+  CategoriesModule,
  ],
  controllers: [AppController],
  providers: [

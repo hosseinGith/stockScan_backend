@@ -1,26 +1,17 @@
-import { IsString, Length, Matches } from 'class-validator';
-import { numberPattern } from 'src/shared/utils';
+import { IsString, Matches } from 'class-validator';
+const USERNAME_PATTERN = /^[a-zA-Z0-9_]{3,30}$/;
+const PASSWORD_PATTERN = /^.{5,}$/;
 
-// user-data.dto.ts
-export class UserDataDto {
- @IsString()
- @Matches(numberPattern, { message: 'فرمت شماره موبایل اشتباه است' })
- number: string;
-
- @IsString()
- password: string;
-}
 // signup.dto.ts
 export default class LoginDto {
  @IsString()
- @Matches(numberPattern, { message: 'فرمت شماره موبایل اشتباه است' })
- number: string;
+ @Matches(USERNAME_PATTERN, {
+  message: 'فرمت نام کاربری اشتباه است',
+ })
+ username: string;
  @IsString()
- @Length(
-  Number(process.env.OTP_CODE_LENGTH || 5),
-  Number(process.env.OTP_CODE_LENGTH || 5),
-  { message: 'فرمت کد تایید اشتباه است.' },
- )
- code: string;
+ @Matches(PASSWORD_PATTERN, {
+  message: 'رمز عبور شما کوتاه است',
+ })
+ password: string;
 }
-

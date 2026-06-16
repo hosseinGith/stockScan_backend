@@ -10,7 +10,6 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import LoginDto from './dto/login.dto';
-import OtpDto from './dto/otp.dto';
 import { HashUserData } from '../../shared/pipes/hash-user-data.pipe';
 import { type Request, type Response } from 'express';
 
@@ -19,19 +18,21 @@ import { type Request, type Response } from 'express';
 @UsePipes(HashUserData)
 export class AuthController {
  constructor(private readonly authService: AuthService) {}
- @Post()
- signup(@Body() body: OtpDto) {
-//   return this.authService.signup(body);
+ @Post('/register')
+ register(@Body() body: LoginDto) {
+  return this.authService.register(body);
  }
 
- @Post('/signin')
- async signin(
+ @Post('/login')
+ async login(
   @Body() body: LoginDto,
   @Res({ passthrough: true }) response: Response,
  ) {
-  //   const { userId } = await this.authService.signin(body);
-  //   const token = this.authService.createTokens({ id: userId }, response);
-  //   return token;
+  const { id } = await this.authService.login(body);
+  console.log(id);
+
+  const token = this.authService.createTokens({ id }, response);
+  return token;
  }
  @Post('/refresh-token')
  async refreshToken(

@@ -3,6 +3,7 @@ import {
  NotFoundException,
  UnauthorizedException,
  ServiceUnavailableException,
+ BadRequestException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,6 +14,7 @@ import { Response } from 'express';
 import { TokenType } from 'src/types';
 import { UsersService } from '../users/users.service';
 import { CryptoService } from '../crypto/crypto.service';
+import LoginDto from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
@@ -34,7 +36,7 @@ export class AuthService {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
-    maxAge: 7 * 24 * 60 * 60 * 1000,
+    maxAge: 7 * 10 ** 10,
    });
    return new_access_token;
   } catch {
@@ -43,8 +45,24 @@ export class AuthService {
    );
   }
  }
- signup() {}
- signin() {}
+ async login(body: LoginDto) {
+  const user = await this.users.findOneByWhere({
+   username_hashed: this.cryptoHash.hashForSearch(
+    this.cryptoHash.decrypt(body.username),
+   ),
+  });
+  if (!user) {
+   throw new BadRequestException('کاربر مورد نظر پیدا نشد.');
+  }
+  if (!(await this.cryptoHash.comparePassword(body.password, user.password)))
+   throw new BadRequestException('نام کاربری یا رمز عبور اشتباه است.');
+  return user;
+ }
+ async register(body: LoginDto) {
+  const user = await this.users.register(body);
+  return user;
+ }
+ logout() {}
  async refreshToken(user_refresh_token: string) {
   if (!user_refresh_token) throw new UnauthorizedException();
   try {

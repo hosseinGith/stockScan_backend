@@ -17,7 +17,12 @@ export class Users {
   this.id = nanoid();
  }
  @Column({ unique: true })
- number!: string;
+ username!: string;
+ @Column({ unique: true })
+ username_hashed!: string;
+ @Column()
+ password!: string;
+
  @Column({ nullable: true })
  first_name?: string;
  @Column({ nullable: true })
@@ -33,6 +38,4 @@ export class Users {
  created_at!: Date;
  @Column()
  national_id_hash!: string;
- @Column()
- number_hash!: string;
 }

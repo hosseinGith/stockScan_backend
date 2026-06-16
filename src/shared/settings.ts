@@ -4,8 +4,7 @@ export const hashedUserCol = [
  'first_name',
  'last_name',
  'national_id',
- 'number',
- 'code',
+ 'username',
 ];
 
 export const hashedChatCol = ['content'];
