@@ -20,24 +20,23 @@ export class ProductsService {
   * @returns
   */
  async create(createProductDto: CreateProductDto) {
+  const isExistingProduct = await this.products.findOneBy({
+   id: createProductDto.barcode,
+  });
+  // update if existing
+  if (isExistingProduct) {
+   const updateStatus = await this.update(
+    isExistingProduct.id,
+    createProductDto,
+   );
+   return updateStatus;
+  }
   const category = await this.categories.findOrCreate(
    {
     where: { name: createProductDto.category },
    },
    { name: createProductDto.category },
   );
-  const isExistingProduct = await this.products.findOneBy({
-   id: createProductDto.barcode,
-  });
-  // update if existing
-  if (isExistingProduct) {
-   const updateStatus = await this.products.update(isExistingProduct.id, {
-    ...createProductDto,
-    category,
-   });
-   return updateStatus;
-  }
-  // create
   const product = this.products.create({ ...createProductDto, category });
   await this.products.save(product);
   return product;
@@ -56,7 +55,16 @@ export class ProductsService {
  }
 
  async update(id: string, updateProductDto: UpdateProductDto) {
-  const updateStatus = await this.products.update(id, updateProductDto);
+  const category = await this.categories.findOrCreate(
+   {
+    where: { name: updateProductDto.category },
+   },
+   { name: updateProductDto.category },
+  );
+  const updateStatus = await this.products.update(id, {
+   ...updateProductDto,
+   category,
+  });
   return updateStatus.affected;
  }
 
