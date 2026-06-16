@@ -22,6 +22,8 @@ export class Users {
  username_hashed!: string;
  @Column()
  password!: string;
+ @Column({ unique: true })
+ email!: string;
 
  @Column({ nullable: true })
  first_name?: string;

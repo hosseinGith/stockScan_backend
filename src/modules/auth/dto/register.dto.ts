@@ -1,9 +1,11 @@
+import { PickType } from '@nestjs/swagger';
 import { IsString, Matches } from 'class-validator';
-export const USERNAME_PATTERN = /^[a-zA-Z0-9_]{3,30}$/;
-export const PASSWORD_PATTERN = /^.{5,}$/;
+import { Users } from 'src/modules/users/entities/users.entity';
+import { PASSWORD_PATTERN, USERNAME_PATTERN } from './login.dto';
+
 
 // signup.dto.ts
-export default class LoginDto {
+export default class RegisterDto extends PickType(Users, ['email']) {
  @IsString()
  @Matches(USERNAME_PATTERN, {
   message: 'فرمت نام کاربری اشتباه است',
