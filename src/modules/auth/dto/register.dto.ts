@@ -1,11 +1,14 @@
-import { PickType } from '@nestjs/swagger';
 import { IsString, Matches } from 'class-validator';
-import { Users } from 'src/modules/users/entities/users.entity';
 import { PASSWORD_PATTERN, USERNAME_PATTERN } from './login.dto';
 
-
 // signup.dto.ts
-export default class RegisterDto extends PickType(Users, ['email']) {
+export default class RegisterDto {
+ @IsString()
+ email: string;
+ @IsString()
+ last_name: string;
+ @IsString()
+ first_name: string;
  @IsString()
  @Matches(USERNAME_PATTERN, {
   message: 'فرمت نام کاربری اشتباه است',
