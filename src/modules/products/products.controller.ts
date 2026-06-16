@@ -6,14 +6,27 @@ import {
  Patch,
  Param,
  Delete,
+ Query,
+ ValidationPipe,
+ Req,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { FilterProductsDto } from './dto/filter-products.dto';
+import { Request } from 'express';
 
 @Controller('api/products')
 export class ProductsController {
  constructor(private readonly productsService: ProductsService) {}
+
+ @Get('search')
+ async search(
+  @Query(ValidationPipe) filterDto: FilterProductsDto,
+  @Req() request: Request,
+ ) {
+  return this.productsService.filterProducts(filterDto, request.user.id);
+ }
 
  @Post()
  create(@Body() createProductDto: CreateProductDto) {
