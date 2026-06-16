@@ -1,8 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import {
+ BadRequestException,
+ Injectable,
+ NotFoundException,
+} from '@nestjs/common';
 import { Category } from './entities/category.entity';
-import { Repository } from 'typeorm';
+import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { InjectRepository } from '@nestjs/typeorm';
+import { UpdateCategoryDto } from './dto/update-category.dto';
 
 @Injectable()
 export class CategoriesService {
@@ -12,32 +17,28 @@ export class CategoriesService {
  ) {}
  async create(createCategoryDto: CreateCategoryDto) {
   const isExistingCategory = await this.categories.findOneBy({
-   id: createCategoryDto.barcode,
+   name: createCategoryDto.name,
   });
   // update if existing
   if (isExistingCategory) {
-   const updateStatus = await this.categories.update(
-    isExistingCategory.id,
-    createCategoryDto,
-   );
-   return updateStatus;
+   throw new BadRequestException('این دسته بندی استفاده شده است.');
   }
   // create
-  const product = this.categories.create(createCategoryDto);
-  await this.categories.save(product);
-  return product;
+  const category = this.categories.create(createCategoryDto);
+  await this.categories.save(category);
+  return category;
  }
 
- async findAll(options?: FindManyOptions<Categories>) {
-  const product = await this.categories.find(options);
-  if (!product) throw new NotFoundException();
-  return product;
+ async findAll(options?: FindManyOptions<Category>) {
+  const category = await this.categories.find(options);
+  if (!category) throw new NotFoundException();
+  return category;
  }
 
- async findOne(options?: FindOneOptions<Categories>) {
-  const product = await this.categories.findOne(options);
-  if (!product) throw new NotFoundException();
-  return product;
+ async findOne(options?: FindOneOptions<Category>) {
+  const category = await this.categories.findOne(options);
+  if (!category) throw new NotFoundException();
+  return category;
  }
 
  async update(id: string, updateCategoryDto: UpdateCategoryDto) {
