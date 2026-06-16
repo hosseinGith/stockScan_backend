@@ -5,4 +5,5 @@ export class CreateCategoryDto extends OmitType(Category, [
  'id',
  'products',
  'createdAt',
+ 'updatedAt',
 ]) {}

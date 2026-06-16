@@ -40,6 +40,19 @@ export class CategoriesService {
   if (!category) throw new NotFoundException();
   return category;
  }
+ async findOrCreate(
+  options: FindOneOptions<Category>,
+  createCategoryDto: CreateCategoryDto,
+ ): Promise<Category> {
+  try {
+   return await this.findOne(options);
+  } catch (error) {
+   if (error instanceof NotFoundException) {
+    return await this.create(createCategoryDto);
+   }
+   throw error;
+  }
+ }
 
  async update(id: string, updateCategoryDto: UpdateCategoryDto) {
   const updateStatus = await this.categories.update(id, updateCategoryDto);
