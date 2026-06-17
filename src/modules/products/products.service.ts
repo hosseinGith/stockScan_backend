@@ -59,7 +59,9 @@ export class ProductsService {
    .where('product.isActive = :isActive', { isActive: true });
 
   if (userId) {
-   queryBuilder = queryBuilder.andWhere('product.userId = :userId', { userId });
+   queryBuilder = queryBuilder
+    .leftJoin('product.creator', 'creator')
+    .andWhere('creator.id = :userId', { userId });
   }
 
   if (search) {
@@ -70,9 +72,11 @@ export class ProductsService {
   }
 
   if (categoryId) {
-   queryBuilder = queryBuilder.andWhere('product.categoryId = :categoryId', {
-    categoryId,
-   });
+   queryBuilder = queryBuilder
+    .leftJoin('product.creator', 'creator')
+    .andWhere('creator.id = :categoryId', {
+     categoryId,
+    });
   }
 
   if (minPrice !== undefined) {

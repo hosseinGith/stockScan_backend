@@ -1,17 +1,26 @@
 import { OmitType } from '@nestjs/swagger';
 import { Products } from '../entities/products.entity';
-import { IsString } from 'class-validator';
+import { IsBoolean, IsNumber, IsString } from 'class-validator';
 
-export class CreateProductDto extends OmitType(Products, [
- 'id',
- 'createdAt',
- 'creator',
- 'isExpired',
- 'isExpiringSoon',
- 'isLowStock',
- 'totalValue',
- 'category',
-]) {
+export class CreateProductDto {
  @IsString()
- category?: string;
+ category: string;
+ @IsString()
+ barcode: string;
+ @IsString()
+ name: string;
+ @IsNumber()
+ price: number;
+ @IsNumber()
+ quantity: number;
+ @IsString()
+ expiryDate: string;
+ @IsString()
+ description: string;
+ @IsString()
+ imageUrl: string;
+ @IsNumber()
+ minQuantity: number;
+ @IsBoolean()
+ isActive: boolean;
 }

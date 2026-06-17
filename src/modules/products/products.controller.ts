@@ -9,14 +9,17 @@ import {
  Query,
  ValidationPipe,
  Req,
+ UseGuards,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { FilterProductsDto } from './dto/filter-products.dto';
 import { Request } from 'express';
+import { AuthGuard } from 'src/shared/guards/auth.guard';
 
 @Controller('api/products')
+@UseGuards(AuthGuard)
 export class ProductsController {
  constructor(private readonly productsService: ProductsService) {}
 
