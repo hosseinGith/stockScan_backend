@@ -6,10 +6,13 @@ import {
  ManyToOne,
  BeforeInsert,
  UpdateDateColumn,
+ OneToOne,
+ JoinColumn,
 } from 'typeorm';
 
 import { Category } from '../../categories/entities/category.entity';
 import { Users } from 'src/modules/users/entities/users.entity';
+import { FileEntity } from 'src/modules/files/entities/file.entity';
 
 @Entity()
 export class Products {
@@ -39,8 +42,9 @@ export class Products {
  @Column({ type: 'text', nullable: true })
  description: string | null;
 
- @Column({ type: 'varchar', length: 255, nullable: true })
- imageUrl: string | null;
+ @OneToOne(() => FileEntity)
+ @JoinColumn()
+ image: FileEntity;
 
  @Column({ type: 'int', default: 0 })
  minQuantity: number;
