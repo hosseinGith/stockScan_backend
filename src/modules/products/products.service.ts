@@ -177,6 +177,7 @@ export class ProductsService {
      .andWhere('product.count > :count', { count: 1 })
      .getMany(),
    ]);
+  return { productsCount, expiredProducts, expiringSoonProducts, totalPrice };
  }
  /**
   * this method create and update a product
