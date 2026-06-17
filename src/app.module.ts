@@ -15,6 +15,7 @@ import { CryptoModule } from './modules/crypto/crypto.module';
 import { ProductsModule } from './modules/products/products.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { FilesModule } from './modules/files/files.module';
 
 dotenv.config();
 @Module({
@@ -47,6 +48,7 @@ dotenv.config();
   ProductsModule,
   CategoriesModule,
   DashboardModule,
+  FilesModule,
  ],
  controllers: [AppController],
  providers: [

@@ -27,7 +27,7 @@ export class ProductsService {
   private readonly categories: CategoriesService,
  ) {}
 
- async filterProducts(filterDto: FilterProductsDto, userId?: string) {
+ async filterProducts(filterDto: FilterProductsDto) {
   const {
    search,
    categoryId,
@@ -42,7 +42,6 @@ export class ProductsService {
 
   const where: FindOptionsWhere<Products> = {
    isActive: true,
-   creator: userId ? { id: userId } : undefined,
    category: categoryId ? { id: categoryId } : undefined,
   };
   if (search) {
@@ -57,12 +56,6 @@ export class ProductsService {
    .createQueryBuilder('product')
    .leftJoinAndSelect('product.category', 'category')
    .where('product.isActive = :isActive', { isActive: true });
-
-  if (userId) {
-   queryBuilder = queryBuilder
-    .leftJoin('product.creator', 'creator')
-    .andWhere('creator.id = :userId', { userId });
-  }
 
   if (search) {
    queryBuilder = queryBuilder.andWhere(
@@ -142,9 +135,7 @@ export class ProductsService {
   const data = products.map((product) => new ProductResponseDto(product));
 
   const allProducts = await this.products.find({
-   where: userId
-    ? { creator: { id: userId }, isActive: true }
-    : { isActive: true },
+   where: { isActive: true },
   });
 
   const stats = {
@@ -168,6 +159,24 @@ export class ProductsService {
    hasMore: offset + limit < total,
    stats,
   };
+ }
+ async getStats() {
+  const [productsCount, expiredProducts, expiringSoonProducts, totalPrice] =
+   await Promise.all([
+    this.products.count(),
+    this.filterProducts({
+     status: ProductStatus.EXPIRED,
+    }),
+    this.filterProducts({
+     status: ProductStatus.EXPIRING_SOON,
+    }),
+    this.products
+     .createQueryBuilder('product')
+     .select('SUM(product.price)', 'totalPrice')
+     .where('product.isActive = :isActive', { isActive: true })
+     .andWhere('product.count > :count', { count: 1 })
+     .getMany(),
+   ]);
  }
  /**
   * this method create and update a product
