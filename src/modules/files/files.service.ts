@@ -6,15 +6,20 @@ import {
 import { extname, join, resolve } from 'path';
 import {
  createReadStream,
+ createWriteStream,
  existsSync,
  mkdirSync,
  stat,
  Stats,
  unlink,
- writeFile,
 } from 'fs';
 import { randomUUID } from 'crypto';
-import Stream from 'stream';
+import Stream, { pipeline, Readable } from 'stream';
+import { FileEntity } from './entities/file.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { CryptoService } from '../crypto/crypto.service';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class FilesService {
@@ -35,21 +40,31 @@ export class FilesService {
  ];
  private readonly maxFileSize = 5 * 1024 * 1024; // 5MB
 
- constructor() {
+ constructor(
+  @InjectRepository(FileEntity)
+  private readonly fileEntity: Repository<FileEntity>,
+  private readonly cryptoService: CryptoService,
+  private readonly users: UsersService,
+ ) {
   this.ensureUploadDirectory();
  }
 
- async create(file: Express.Multer.File, subFolder?: string) {
+ async create(file: Express.Multer.File, userId: string, subFolder?: string) {
   if (!file) {
    throw new BadRequestException('فایلی برای آپلود وجود ندارد');
   }
 
+  // اعتبارسنجی
   this.validateFile(file);
 
   const folder = subFolder || this.determineSubFolder(file.mimetype);
   const filename = this.generateFilename(file.originalname);
   const filePath = this.getFilePath(filename, folder);
   const fileUrl = this.getFileUrl(filename, folder);
+  const query = this.fileEntity.manager.connection.createQueryRunner();
+  await query.connect();
+  await query.startTransaction();
+  const user = await this.users.findOne(userId);
 
   try {
    const dir = join(resolve(process.cwd(), this.uploadDir), folder);
@@ -57,10 +72,30 @@ export class FilesService {
     mkdirSync(dir, { recursive: true });
    }
 
-   await new Promise((res, rej) =>
-    writeFile(filePath, file.buffer, (err) => (err ? res(null) : rej(err))),
-   );
+   const writeStream = createWriteStream(filePath);
 
+   const readableStream = Readable.from(file.buffer);
+
+   await new Promise((res, rej) =>
+    pipeline(readableStream, writeStream, (err) =>
+     err ? rej(err) : res(null),
+    ),
+   );
+   await query.manager.save(
+    FileEntity,
+    query.manager.create(FileEntity, {
+     extension: extname(file.originalname),
+     fileName: filename,
+     folder,
+     originalName: this.cryptoService.hashForSearch(file.originalname),
+     url: fileUrl,
+     path: filePath,
+     size: file.size,
+     uploadedBy: user,
+     mimeType: file.mimetype,
+    }),
+   );
+   await query.commitTransaction();
    return {
     success: true,
     file: {
@@ -75,7 +110,10 @@ export class FilesService {
     message: 'فایل با موفقیت آپلود شد',
    };
   } catch {
+   await query.rollbackTransaction();
    throw new BadRequestException('خطا در ذخیره فایل');
+  } finally {
+   await query.release();
   }
  }
  async getFileStream(
@@ -119,7 +157,7 @@ export class FilesService {
    const filePath = this.getFilePath(filename, subDir);
    if (existsSync(filePath)) {
     const stats: Stats = await new Promise((res, rej) =>
-     stat(filePath, (err, stats) => (err ? res(stats) : rej(err))),
+     stat(filePath, (err, stats) => (!err ? res(stats) : rej(err))),
     );
     return {
      exists: true,
@@ -143,7 +181,7 @@ export class FilesService {
    if (existsSync(filePath)) {
     try {
      await new Promise((res, rej) =>
-      unlink(filePath, (err) => (err ? res(null) : rej(err))),
+      unlink(filePath, (err) => (!err ? res(null) : rej(err))),
      );
 
      return {

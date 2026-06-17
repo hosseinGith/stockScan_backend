@@ -9,10 +9,11 @@ import {
  UploadedFile,
  BadRequestException,
  Res,
+ Req,
 } from '@nestjs/common';
 import { FilesService } from './files.service';
 import { FileValidationFilter } from './filters/file-validation.filter';
-import { Response } from 'express';
+import type { Request, Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('files')
@@ -25,12 +26,11 @@ export class FilesController {
  )
  async uploadSingle(
   @UploadedFile() file: Express.Multer.File,
+  @Req() request: Request,
   @Body('subFolder') subFolder?: string,
  ) {
-  if (!file) {
-   throw new BadRequestException('فایلی برای آپلود وجود ندارد');
-  }
-  return this.filesService.create(file, subFolder);
+  if (!file) throw new BadRequestException('فایلی برای آپلود وجود ندارد');
+  return this.filesService.create(file, request.user.id, subFolder);
  }
  @Get(':filename')
  async serveFile(@Param('filename') filename: string, @Res() res: Response) {

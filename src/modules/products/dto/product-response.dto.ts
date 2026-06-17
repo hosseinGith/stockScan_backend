@@ -27,7 +27,6 @@ export class ProductResponseDto {
   this.quantity = product.quantity;
   this.expiryDate = product.expiryDate;
   this.description = product.description;
-  this.imageUrl = product.imageUrl;
   this.categoryId = product.category.id || null;
   this.categoryName = product.category?.name || null;
   this.createdAt = product.createdAt;
