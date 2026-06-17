@@ -1,34 +1,64 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+ Controller,
+ Get,
+ Post,
+ Body,
+ Param,
+ Delete,
+ UseInterceptors,
+ UploadedFile,
+ BadRequestException,
+ Res,
+} from '@nestjs/common';
 import { FilesService } from './files.service';
-import { CreateFileDto } from './dto/create-file.dto';
-import { UpdateFileDto } from './dto/update-file.dto';
+import { FileValidationFilter } from './filters/file-validation.filter';
+import { Response } from 'express';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('files')
 export class FilesController {
-  constructor(private readonly filesService: FilesService) {}
+ constructor(private readonly filesService: FilesService) {}
 
-  @Post()
-  create(@Body() createFileDto: CreateFileDto) {
-    return this.filesService.create(createFileDto);
+ @Post()
+ @UseInterceptors(
+  FileInterceptor('file', FileValidationFilter.createMulterOptions()),
+ )
+ async uploadSingle(
+  @UploadedFile() file: Express.Multer.File,
+  @Body('subFolder') subFolder?: string,
+ ) {
+  if (!file) {
+   throw new BadRequestException('فایلی برای آپلود وجود ندارد');
   }
+  return this.filesService.create(file, subFolder);
+ }
+ @Get(':filename')
+ async serveFile(@Param('filename') filename: string, @Res() res: Response) {
+  try {
+   const { stream, mimetype, size } =
+    await this.filesService.getFileStream(filename);
 
-  @Get()
-  findAll() {
-    return this.filesService.findAll();
-  }
+   res.setHeader('Content-Type', mimetype);
+   res.setHeader('Content-Length', size);
+   res.setHeader('Cache-Control', 'public, max-age=31536000');
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.filesService.findOne(+id);
+   stream.pipe(res);
+  } catch (error: any) {
+   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+   if (error.status === 404) {
+    res.status(404).send('فایل یافت نشد');
+   } else {
+    res.status(500).send('خطا در نمایش فایل');
+   }
   }
+ }
+ @Get('info/:filename')
+ async getFileInfo(@Param('filename') filename: string) {
+  return this.filesService.getFileInfo(filename);
+ }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateFileDto: UpdateFileDto) {
-    return this.filesService.update(+id, updateFileDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.filesService.remove(+id);
-  }
+ @Delete(':filename')
+ remove(@Param('filename') filename: string) {
+  return this.filesService.remove(filename);
+ }
 }
