@@ -32,7 +32,7 @@ export enum StorageProvider {
 @Index(['folder'])
 @Index(['uploadedBy'])
 @Index(['isActive', 'isPublic'])
-export class File {
+export class FileEntity {
  @PrimaryGeneratedColumn('uuid')
  id: string;
 
@@ -99,9 +99,6 @@ export class File {
  @ManyToOne(() => Users, { nullable: true, onDelete: 'SET NULL' })
  @JoinColumn()
  uploadedBy: Users;
-
- @Column({ type: 'uuid', nullable: true })
- uploadedById: string;
 
  @CreateDateColumn({ type: 'timestamp' })
  createdAt: Date;
