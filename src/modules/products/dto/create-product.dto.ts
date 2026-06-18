@@ -1,5 +1,3 @@
-import { OmitType } from '@nestjs/swagger';
-import { Products } from '../entities/products.entity';
 import { IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateProductDto {
