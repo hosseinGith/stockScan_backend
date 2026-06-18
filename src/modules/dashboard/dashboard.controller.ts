@@ -4,8 +4,10 @@ import { AuthGuard } from 'src/shared/guards/auth.guard';
 import { AccessGuard } from 'src/shared/guards/access.guard';
 import { Role } from '../users/types';
 import { Access } from 'src/shared/decorators/access.decorator';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('api/dashboard')
+@ApiBearerAuth()
 @Access(Role.ADMIN)
 @UseGuards(AuthGuard, AccessGuard)
 export class DashboardController {
