@@ -161,23 +161,33 @@ export class ProductsService {
   };
  }
  async getStats() {
-  const [productsCount, expiredProducts, expiringSoonProducts, totalPrice] =
-   await Promise.all([
-    this.products.count(),
-    this.filterProducts({
-     status: ProductStatus.EXPIRED,
-    }),
-    this.filterProducts({
-     status: ProductStatus.EXPIRING_SOON,
-    }),
-    this.products
-     .createQueryBuilder('product')
-     .select('SUM(product.price)', 'totalPrice')
-     .where('product.isActive = :isActive', { isActive: true })
-     .andWhere('product.count > :count', { count: 1 })
-     .getMany(),
-   ]);
-  return { productsCount, expiredProducts, expiringSoonProducts, totalPrice };
+  const [
+   productsCount,
+   expiredProductsCount,
+   expiringSoonProductsCount,
+   totalPrice,
+  ] = await Promise.all([
+   this.products.count(),
+   this.filterProducts({
+    status: ProductStatus.EXPIRED,
+   }),
+   this.filterProducts({
+    status: ProductStatus.EXPIRING_SOON,
+   }),
+   this.products
+    .createQueryBuilder('product')
+    .select('SUM(product.price)', 'totalPrice')
+    .where('product.isActive = :isActive', { isActive: true })
+    .andWhere('product.count > :count', { count: 1 })
+    .getMany(),
+  ]);
+
+  return {
+   productsCount,
+   expiredProductsCount,
+   expiringSoonProductsCount,
+   totalPrice,
+  };
  }
  /**
   * this method create and update a product

@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Between, Repository } from 'typeorm';
 import { Category } from '../categories/entities/category.entity';
 import { Products } from '../products/entities/products.entity';
-import { UsersService } from '../users/users.service';
+import { ProductsService } from '../products/products.service';
 
 @Injectable()
 export class DashboardService {
@@ -12,68 +12,41 @@ export class DashboardService {
   private productRepository: Repository<Products>,
   @InjectRepository(Category)
   private categoryRepository: Repository<Category>,
-  private users: UsersService,
+  private products: ProductsService,
  ) {}
 
- async getStats(userId: string) {
-  const user = await this.users.findOne(userId);
-  const products = await this.productRepository.find({
-   where: { creator: user, isActive: true },
-  });
-
-  const now = new Date();
-  const nextWeek = new Date(now);
-  nextWeek.setDate(now.getDate() + 7);
-
-  const totalProducts = products.length;
-  const totalValue = products.reduce((sum, p) => sum + p.price * p.quantity, 0);
-
-  const expiredCount = products.filter((p) => {
-   if (!p.expiryDate) return false;
-   return new Date(p.expiryDate) < now;
-  }).length;
-
-  const expiringSoonCount = products.filter((p) => {
-   if (!p.expiryDate) return false;
-   const expiry = new Date(p.expiryDate);
-   return expiry >= now && expiry <= nextWeek;
-  }).length;
-
-  const lowStockCount = products.filter(
-   (p) => p.quantity <= (p.minQuantity || 5),
-  ).length;
-
+ async getStats() {
+  const {
+   expiredProductsCount,
+   expiringSoonProductsCount,
+   productsCount,
+   totalPrice,
+  } = await this.products.getStats();
   return {
-   totalProducts,
-   totalValue,
-   expiredCount,
-   expiringSoonCount,
-   lowStockCount,
+   productsCount,
+   totalPrice,
+   expiredProductsCount,
+   expiringSoonProductsCount,
    categoriesCount: await this.categoryRepository.count(),
   };
  }
 
- async getRecentProducts(userId: string, limit: number = 5) {
-  const user = await this.users.findOne(userId);
-
+ async getRecentProducts(limit: number = 5) {
   return this.productRepository.find({
-   where: { creator: user, isActive: true },
+   where: { isActive: true },
    relations: ['category'],
    order: { createdAt: 'DESC' },
    take: limit,
   });
  }
 
- async getExpiringProducts(userId: string, limit: number = 10) {
-  const user = await this.users.findOne(userId);
-
+ async getExpiringProducts(limit: number = 10) {
   const now = new Date();
   const nextWeek = new Date(now);
   nextWeek.setDate(now.getDate() + 7);
 
   return this.productRepository.find({
    where: {
-    creator: user,
     isActive: true,
     expiryDate: Between(
      now.toISOString().split('T')[0],
@@ -86,11 +59,9 @@ export class DashboardService {
   });
  }
 
- async getLowStockProducts(userId: string, limit: number = 10) {
-  const user = await this.users.findOne(userId);
-
+ async getLowStockProducts(limit: number = 10) {
   const products = await this.productRepository.find({
-   where: { creator: user, isActive: true },
+   where: { isActive: true },
    relations: ['category'],
    order: { quantity: 'ASC' },
   });
@@ -100,13 +71,13 @@ export class DashboardService {
    .slice(0, limit);
  }
 
- async getOverview(userId: string) {
+ async getOverview() {
   const [stats, recentProducts, expiringProducts, lowStockProducts] =
    await Promise.all([
-    this.getStats(userId),
-    this.getRecentProducts(userId),
-    this.getExpiringProducts(userId),
-    this.getLowStockProducts(userId),
+    this.getStats(),
+    this.getRecentProducts(),
+    this.getExpiringProducts(),
+    this.getLowStockProducts(),
    ]);
 
   return {

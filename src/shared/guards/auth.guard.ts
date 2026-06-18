@@ -1,7 +1,6 @@
 import {
  CanActivate,
  ExecutionContext,
- ForbiddenException,
  Injectable,
  UnauthorizedException,
 } from '@nestjs/common';
@@ -27,8 +26,8 @@ export class AuthGuard implements CanActivate {
   if (skipAuth) return true;
 
   const token = String(request.headers?.authorization).split(' ')[1];
+   console.log(token);
   if (!token) throw new UnauthorizedException();
-  console.log(token);
   let userData: TokenType;
   try {
    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
@@ -44,16 +43,15 @@ export class AuthGuard implements CanActivate {
     undefined,
     false,
    );
+   console.log(user);
+   
    if (!user) throw new UnauthorizedException();
 
-   if (!user?.is_active)
-    throw new ForbiddenException(
-     'اکانت شما فعال نشده است. تا فعال شدن آن منتظر بمونید.',
-    );
    request['userAccess'] = user?.role || '';
    request.user = user;
 
    return true;
   }
+  return false;
  }
 }

@@ -1,6 +1,5 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
-import { Request } from 'express';
 import { AuthGuard } from 'src/shared/guards/auth.guard';
 
 @Controller('api/dashboard')
@@ -9,27 +8,27 @@ export class DashboardController {
  constructor(private readonly dashboardService: DashboardService) {}
 
  @Get('stats')
- async getStats(@Req() request: Request) {
-  return this.dashboardService.getStats(request.user.id);
+ async getStats() {
+  return this.dashboardService.getStats();
  }
 
  @Get('recent-products')
- async getRecentProducts(@Req() request: Request) {
-  return this.dashboardService.getRecentProducts(request.user.id);
+ async getRecentProducts() {
+  return this.dashboardService.getRecentProducts();
  }
 
  @Get('expiring-products')
- async getExpiringProducts(@Req() request: Request) {
-  return this.dashboardService.getExpiringProducts(request.user.id);
+ async getExpiringProducts() {
+  return this.dashboardService.getExpiringProducts();
  }
 
  @Get('low-stock')
- async getLowStock(@Req() request: Request) {
-  return this.dashboardService.getLowStockProducts(request.user.id);
+ async getLowStock() {
+  return this.dashboardService.getLowStockProducts();
  }
 
  @Get('overview')
- async getOverview(@Req() request: Request) {
-  return this.dashboardService.getOverview(request.user.id);
+ async getOverview() {
+  return this.dashboardService.getOverview();
  }
 }
