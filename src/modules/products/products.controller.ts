@@ -16,10 +16,14 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { FilterProductsDto } from './dto/filter-products.dto';
 import { AuthGuard } from 'src/shared/guards/auth.guard';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { AccessGuard } from 'src/shared/guards/access.guard';
+import { Access } from 'src/shared/decorators/access.decorator';
+import { Role } from '../users/types';
 
 @Controller('api/products')
 @ApiBearerAuth()
-@UseGuards(AuthGuard)
+@Access(Role.ADMIN)
+@UseGuards(AuthGuard, AccessGuard)
 export class ProductsController {
  constructor(private readonly productsService: ProductsService) {}
 
