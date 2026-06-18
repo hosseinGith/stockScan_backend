@@ -10,13 +10,22 @@ import {
  BadRequestException,
  Res,
  Req,
+ UseGuards,
 } from '@nestjs/common';
 import { FilesService } from './files.service';
 import { FileValidationFilter } from './filters/file-validation.filter';
 import type { Request, Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { AuthGuard } from 'src/shared/guards/auth.guard';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { AccessGuard } from 'src/shared/guards/access.guard';
+import { Access } from 'src/shared/decorators/access.decorator';
+import { Role } from '../users/types';
 
 @Controller('files')
+@ApiBearerAuth()
+@Access(Role.ADMIN)
+@UseGuards(AuthGuard, AccessGuard)
 export class FilesController {
  constructor(private readonly filesService: FilesService) {}
 
