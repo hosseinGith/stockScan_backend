@@ -18,6 +18,7 @@ import {
  SortBy,
 } from './dto/filter-products.dto';
 import { ProductResponseDto } from './dto/product-response.dto';
+import { FilesService } from '../files/files.service';
 
 @Injectable()
 export class ProductsService {
@@ -25,6 +26,7 @@ export class ProductsService {
   @InjectRepository(Products)
   private readonly products: Repository<Products>,
   private readonly categories: CategoriesService,
+  private readonly files: FilesService,
  ) {}
 
  async filterProducts(filterDto: FilterProductsDto) {
@@ -167,12 +169,18 @@ export class ProductsService {
   nextWeek.setDate(now.getDate() + 7);
   const [
    productsCount,
+   productsByBarcodeCount,
    expiredProductsCount,
    expiringSoonProductsCount,
    totalPrice,
   ] = await Promise.all([
+   this.products
+    .createQueryBuilder('product')
+    .select('SUM(product.quantity)', 'totalQuantity')
+    .where('product.isActive = :isActive', { isActive: true })
+    .andWhere('product.quantity > :quantity', { quantity: 1 })
+    .getRawOne<{ totalQuantity: string }>(),
    this.products.count(),
-
    queryBuilder
     .where('(product.expiryDate IS NULL OR product.expiryDate >= :now)', {
      now: now.toISOString().split('T')[0],
@@ -188,15 +196,16 @@ export class ProductsService {
     .createQueryBuilder('product')
     .select('SUM(product.price)', 'totalPrice')
     .where('product.isActive = :isActive', { isActive: true })
-    .andWhere('product.count > :count', { count: 1 })
-    .getMany(),
+    .andWhere('product.quantity > :quantity', { quantity: 1 })
+    .getRawOne<{ totalPrice: string }>(),
   ]);
 
   return {
-   productsCount,
+   productsCount: Number(productsCount.totalQuantity || 0),
+   productsByBarcodeCount,
    expiredProductsCount,
    expiringSoonProductsCount,
-   totalPrice,
+   totalPrice: Number(totalPrice.totalPrice || 0),
   };
  }
  /**
@@ -206,9 +215,13 @@ export class ProductsService {
   * @returns
   */
  async create(createProductDto: CreateProductDto) {
-  const isExistingProduct = await this.products.findOneBy({
-   id: createProductDto.barcode,
+  const isExistingProduct = await this.products.findOne({
+   where: {
+    barcode: createProductDto.barcode,
+   },
+   select: ['id'],
   });
+
   if (isExistingProduct) {
    const updateStatus = await this.update(
     isExistingProduct.id,
@@ -222,7 +235,15 @@ export class ProductsService {
    },
    { name: createProductDto.category },
   );
-  const product = this.products.create({ ...createProductDto, category });
+  const imageInfo = createProductDto.imageURL
+   ? await this.files.getFileInfo(createProductDto.imageURL)
+   : null;
+
+  const product = this.products.create({
+   ...createProductDto,
+   category,
+   ...(imageInfo?.image ? { image: imageInfo.image } : {}),
+  });
   await this.products.save(product);
   return product;
  }
@@ -240,15 +261,23 @@ export class ProductsService {
  }
 
  async update(id: string, updateProductDto: UpdateProductDto) {
-  const category = await this.categories.findOrCreate(
-   {
-    where: { name: updateProductDto.category },
-   },
-   { name: updateProductDto.category },
-  );
+  const [category, imageInfo] = await Promise.all([
+   this.categories.findOrCreate(
+    {
+     where: { name: updateProductDto.category },
+    },
+    { name: updateProductDto.category },
+   ),
+   updateProductDto.imageURL
+    ? this.files.getFileInfo(updateProductDto.imageURL)
+    : null,
+  ]);
+  console.log(imageInfo);
+
   const updateStatus = await this.products.update(id, {
    ...updateProductDto,
    category,
+   ...(imageInfo?.image ? { image: imageInfo.image } : {}),
   });
   return updateStatus.affected;
  }

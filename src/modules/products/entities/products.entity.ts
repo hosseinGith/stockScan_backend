@@ -48,8 +48,6 @@ export class Products {
 
  @Column({ type: 'int', default: 0 })
  minQuantity: number;
- @Column({ type: 'int' })
- count!: number;
 
  @Column({ type: 'boolean', default: false })
  isActive: boolean;
