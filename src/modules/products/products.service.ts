@@ -161,6 +161,10 @@ export class ProductsService {
   };
  }
  async getStats() {
+  const queryBuilder = this.products.createQueryBuilder('product');
+  const now = new Date();
+  const nextWeek = new Date(now);
+  nextWeek.setDate(now.getDate() + 7);
   const [
    productsCount,
    expiredProductsCount,
@@ -168,12 +172,18 @@ export class ProductsService {
    totalPrice,
   ] = await Promise.all([
    this.products.count(),
-   this.filterProducts({
-    status: ProductStatus.EXPIRED,
-   }),
-   this.filterProducts({
-    status: ProductStatus.EXPIRING_SOON,
-   }),
+
+   queryBuilder
+    .where('(product.expiryDate IS NULL OR product.expiryDate >= :now)', {
+     now: now.toISOString().split('T')[0],
+    })
+    .getCount(),
+   queryBuilder
+    .where('product.expiryDate >= :now AND product.expiryDate <= :nextWeek', {
+     now: now.toISOString().split('T')[0],
+     nextWeek: nextWeek.toISOString().split('T')[0],
+    })
+    .getCount(),
    this.products
     .createQueryBuilder('product')
     .select('SUM(product.price)', 'totalPrice')
