@@ -148,18 +148,18 @@ export class FilesService {
    size: info.size,
   };
  }
- async getFileInfo(
-  filename: string,
- ): Promise<{ exists: boolean; path: string; size: number }> {
+ async getFileInfo(filename: string) {
   const subDirs = ['images', 'documents', 'temporary'];
-
+  if (!filename) throw new BadRequestException();
   for (const subDir of subDirs) {
    const filePath = this.getFilePath(filename, subDir);
    if (existsSync(filePath)) {
     const stats: Stats = await new Promise((res, rej) =>
      stat(filePath, (err, stats) => (!err ? res(stats) : rej(err))),
     );
+    const image = await this.fileEntity.findOneBy({ path: filePath });
     return {
+     image,
      exists: true,
      path: filePath,
      size: stats.size,
@@ -168,6 +168,7 @@ export class FilesService {
   }
 
   return {
+   image: null,
    exists: false,
    path: '',
    size: 0,
