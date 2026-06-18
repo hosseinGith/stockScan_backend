@@ -136,22 +136,7 @@ export class ProductsService {
 
   const data = products.map((product) => new ProductResponseDto(product));
 
-  const allProducts = await this.products.find({
-   where: { isActive: true },
-  });
-
-  const stats = {
-   totalValue: allProducts.reduce((sum, p) => sum + p.price * p.quantity, 0),
-   expiredCount: allProducts.filter((p) => {
-    if (!p.expiryDate) return false;
-    return new Date(p.expiryDate) < now;
-   }).length,
-   expiringSoonCount: allProducts.filter((p) => {
-    if (!p.expiryDate) return false;
-    const expiry = new Date(p.expiryDate);
-    return expiry >= now && expiry <= nextWeek;
-   }).length,
-  };
+  const stats = await this.getStats();
 
   return {
    data,
