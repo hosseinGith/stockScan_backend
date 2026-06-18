@@ -179,7 +179,7 @@ export class ProductsService {
     .getCount(),
    this.products
     .createQueryBuilder('product')
-    .select('SUM(product.price)', 'totalPrice')
+    .select('SUM(product.price) * product.quantity', 'totalPrice')
     .where('product.isActive = :isActive', { isActive: true })
     .andWhere('product.quantity > :quantity', { quantity: 1 })
     .getRawOne<{ totalPrice: string }>(),
