@@ -3,6 +3,8 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Products } from './entities/products.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as cheerio from 'cheerio';
+
 import {
  Between,
  FindManyOptions,
@@ -19,6 +21,7 @@ import {
 } from './dto/filter-products.dto';
 import { ProductResponseDto } from './dto/product-response.dto';
 import { FilesService } from '../files/files.service';
+import axios from 'node_modules/axios';
 
 @Injectable()
 export class ProductsService {
@@ -65,8 +68,6 @@ export class ProductsService {
     { search: `%${search}%` },
    );
   }
-
- 
 
   if (minPrice !== undefined) {
    queryBuilder = queryBuilder.andWhere('product.price >= :minPrice', {
@@ -127,7 +128,7 @@ export class ProductsService {
   queryBuilder = queryBuilder.skip(offset).take(limit);
 
   const [products, total] = await queryBuilder.getManyAndCount();
-  
+
   const data = products.map((product) => new ProductResponseDto(product));
 
   const stats = await this.getStats();
@@ -238,7 +239,62 @@ export class ProductsService {
   if (!product) throw new NotFoundException();
   return product;
  }
+ private extractProductInfo(html: string) {
+  const $ = cheerio.load(html);
 
+  const productInfo = {
+   description: '',
+   brand: '',
+   gpcStructure: '',
+   break: '',
+   breakCode: '',
+   language: 'فارسی',
+   codeType: 'GTIN 13',
+   englishDescription: '',
+   englishBrand: '',
+  };
+
+  $('.col-md-6:first-child ul li').each((i, el) => {
+   const text = $(el).text().trim();
+
+   if (text.includes('شرح برچسب:')) {
+    productInfo.description = text.replace('شرح برچسب:', '').trim();
+   } else if (text.includes('نام برند:')) {
+    productInfo.brand = text.replace('نام برند:', '').trim();
+   } else if (text.includes('ساختار GPC:')) {
+    productInfo.gpcStructure = text.replace('ساختار GPC:', '').trim();
+   } else if (text.includes('بریک:')) {
+    productInfo.break = text.replace('بریک:', '').trim();
+   } else if (text.includes('کد بریک:')) {
+    productInfo.breakCode = text.replace('کد بریک:', '').trim();
+   } else if (text.includes('نوع کد:')) {
+    productInfo.codeType = text.replace('نوع کد:', '').trim();
+   }
+  });
+
+  $('.col-md-6:last-child ul li').each((i, el) => {
+   const text = $(el).text().trim();
+
+   if (text.includes('Label Description:')) {
+    productInfo.englishDescription = text
+     .replace('Label Description:', '')
+     .trim();
+   } else if (text.includes('Brand Title:')) {
+    productInfo.englishBrand = text.replace('Brand Title:', '').trim();
+   }
+  });
+  for (const key in productInfo) {
+   const item = productInfo[key as keyof typeof productInfo];
+   productInfo[key as keyof typeof productInfo] = item.replace('کد','').replace(/\n/g,'').trim();
+  }
+  return productInfo;
+ }
+
+ async getProductInfoFromWebByBarcode(barcode: string) {
+  const response = await axios.get(`https://www.irancode.ir/01/${barcode}`);
+  const html = response.data as string;
+  return this.extractProductInfo(html);
+ }
  async update(id: string, updateProductDto: UpdateProductDto) {
   const [category, imageInfo] = await Promise.all([
    this.categories.findOrCreate(

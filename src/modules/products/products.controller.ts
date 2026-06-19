@@ -19,6 +19,7 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 import { AccessGuard } from 'src/shared/guards/access.guard';
 import { Access } from 'src/shared/decorators/access.decorator';
 import { Role } from '../users/types';
+import SkipAuth from 'src/shared/decorators/skip-auth.decorator';
 
 @Controller('api/products')
 @ApiBearerAuth()
@@ -36,6 +37,11 @@ export class ProductsController {
   return this.productsService.getStats();
  }
 
+ @SkipAuth()
+ @Get('getProductInfoFromWebByBarcode')
+ getProductInfoFromWebByBarcode(@Query('barcode') barcode: string) {
+  return this.productsService.getProductInfoFromWebByBarcode(barcode);
+ }
  @Post()
  create(@Body() createProductDto: CreateProductDto) {
   return this.productsService.create(createProductDto);
@@ -48,7 +54,10 @@ export class ProductsController {
 
  @Get(':id')
  findOne(@Param('id') id: string) {
-  return this.productsService.findOne({ where: { id }, relations: ['category'] });
+  return this.productsService.findOne({
+   where: { id },
+   relations: ['category'],
+  });
  }
 
  @Patch(':id')
