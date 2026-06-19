@@ -1,3 +1,4 @@
+import { Category } from 'src/modules/categories/entities/category.entity';
 import { Products } from '../entities/products.entity';
 
 export class ProductResponseDto {
@@ -10,6 +11,7 @@ export class ProductResponseDto {
  description: string | null;
  imageUrl: string | null;
  categoryId: string | null;
+ category: Category | null;
  categoryName?: string | null;
  createdAt: Date;
  updatedAt: Date;

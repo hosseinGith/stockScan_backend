@@ -32,7 +32,7 @@ export class ProductsService {
  async filterProducts(filterDto: FilterProductsDto) {
   const {
    search,
-   categoryId,
+   category,
    minPrice,
    maxPrice,
    sortBy,
@@ -44,7 +44,7 @@ export class ProductsService {
 
   const where: FindOptionsWhere<Products> = {
    isActive: true,
-   category: categoryId ? { id: categoryId } : undefined,
+   category: category ? { name: category } : undefined,
   };
   if (search) {
    where.name = Like(`%${search}%`);
@@ -66,13 +66,7 @@ export class ProductsService {
    );
   }
 
-  if (categoryId) {
-   queryBuilder = queryBuilder
-    .leftJoin('product.creator', 'creator')
-    .andWhere('creator.id = :categoryId', {
-     categoryId,
-    });
-  }
+ 
 
   if (minPrice !== undefined) {
    queryBuilder = queryBuilder.andWhere('product.price >= :minPrice', {
@@ -133,7 +127,7 @@ export class ProductsService {
   queryBuilder = queryBuilder.skip(offset).take(limit);
 
   const [products, total] = await queryBuilder.getManyAndCount();
-
+  
   const data = products.map((product) => new ProductResponseDto(product));
 
   const stats = await this.getStats();

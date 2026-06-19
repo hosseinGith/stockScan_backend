@@ -22,7 +22,7 @@ export class FilterProductsDto {
 
   @IsOptional()
   @IsString()
-  categoryId?: string;
+  category?: string;
 
   @IsOptional()
   @Type(() => Number)
