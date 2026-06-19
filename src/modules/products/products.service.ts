@@ -215,8 +215,8 @@ export class ProductsService {
    },
    { name: createProductDto.category },
   );
-  const imageInfo = createProductDto.imageURL
-   ? await this.files.getFileInfo(createProductDto.imageURL)
+  const imageInfo = createProductDto.imageId
+   ? await this.files.findOneBy(createProductDto.imageId)
    : null;
 
   const product = this.products.create({
@@ -285,14 +285,20 @@ export class ProductsService {
   });
   for (const key in productInfo) {
    const item = productInfo[key as keyof typeof productInfo];
-   productInfo[key as keyof typeof productInfo] = item.replace('کد','').replace(/\n/g,'').trim();
+   productInfo[key as keyof typeof productInfo] = item
+    .replace('کد', '')
+    .replace(/\n/g, '')
+    .trim();
   }
   return productInfo;
  }
 
  async getProductInfoFromWebByBarcode(barcode: string) {
-  const response = await axios.get(`https://www.irancode.ir/01/${barcode}`);
+  const response = await axios.get(
+   `https://www.irancode.ir/01/${barcode.trim()}`,
+  );
   const html = response.data as string;
+
   return this.extractProductInfo(html);
  }
  async update(id: string, updateProductDto: UpdateProductDto) {
@@ -303,14 +309,13 @@ export class ProductsService {
     },
     { name: updateProductDto.category },
    ),
-   updateProductDto.imageURL
-    ? this.files.getFileInfo(updateProductDto.imageURL)
+   updateProductDto.imageId
+    ? this.files.findOneBy(updateProductDto.imageId)
     : null,
   ]);
-  console.log(imageInfo);
 
   const updateStatus = await this.products.update(id, {
-   ...updateProductDto,
+   ...{ ...updateProductDto, imageId: undefined },
    category,
    ...(imageInfo?.image ? { image: imageInfo.image } : {}),
   });

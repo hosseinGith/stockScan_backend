@@ -22,7 +22,7 @@ import { AccessGuard } from 'src/shared/guards/access.guard';
 import { Access } from 'src/shared/decorators/access.decorator';
 import { Role } from '../users/types';
 
-@Controller('files')
+@Controller('/api/files')
 @ApiBearerAuth()
 @Access(Role.ADMIN)
 @UseGuards(AuthGuard, AccessGuard)

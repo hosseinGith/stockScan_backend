@@ -102,9 +102,7 @@ export class UsersService {
    return {
     user: { ...savedUser, username: body.username, password: undefined },
    };
-  } catch (e) {
-   console.error(e);
-
+  } catch {
    await queryRunner.rollbackTransaction();
    throw new BadRequestException('خطا در ثبت‌نام. لطفاً دوباره تلاش کنید.');
   } finally {

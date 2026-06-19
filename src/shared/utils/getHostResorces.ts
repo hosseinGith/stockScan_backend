@@ -69,7 +69,7 @@ export default async function getHostResorces() {
     databaseUsage,
    };
   }
- } catch (error) {
-  console.error('API Error:', error);
+ } catch {
+  /* empty */
  }
 }

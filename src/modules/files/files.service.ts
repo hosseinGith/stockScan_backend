@@ -54,7 +54,6 @@ export class FilesService {
    throw new BadRequestException('فایلی برای آپلود وجود ندارد');
   }
 
-  // اعتبارسنجی
   this.validateFile(file);
 
   const folder = subFolder || this.determineSubFolder(file.mimetype);
@@ -81,7 +80,7 @@ export class FilesService {
      err ? rej(err) : res(null),
     ),
    );
-   await query.manager.save(
+   const savedFile = await query.manager.save(
     FileEntity,
     query.manager.create(FileEntity, {
      extension: extname(file.originalname),
@@ -99,7 +98,7 @@ export class FilesService {
    return {
     success: true,
     file: {
-     id: randomUUID(),
+     id: savedFile.id,
      filename,
      originalName: file.originalname,
      url: fileUrl,
@@ -174,6 +173,12 @@ export class FilesService {
    size: 0,
   };
  }
+ async findOneBy(id: string) {
+  const file = await this.fileEntity.findOneBy({ id });
+  if (!file) throw new NotFoundException('شناسه عکس پیدا نشد.');
+  return this.getFileInfo(file.fileName);
+ }
+
  async remove(filename: string) {
   const subDirs = ['images', 'documents', 'temporary'];
 
@@ -231,6 +236,7 @@ export class FilesService {
   }
 
   const extension = extname(file.originalname).toLowerCase();
+
   if (!this.allowedExtensions.includes(extension)) {
    throw new BadRequestException(
     `پسوند فایل مجاز نیست. پسوندهای مجاز: ${this.allowedExtensions.join(', ')}`,

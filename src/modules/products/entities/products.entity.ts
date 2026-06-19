@@ -42,7 +42,9 @@ export class Products {
  @Column({ type: 'text', nullable: true })
  description: string | null;
 
- @OneToOne(() => FileEntity)
+ @OneToOne(() => FileEntity, {
+  eager: true,
+ })
  @JoinColumn()
  image: FileEntity;
 

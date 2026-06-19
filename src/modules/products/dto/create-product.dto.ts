@@ -17,7 +17,7 @@ export class CreateProductDto {
  description: string;
  @IsString()
  @IsOptional()
- imageURL?: string;
+ imageId?: string;
  @IsNumber()
  minQuantity: number;
  @IsBoolean()

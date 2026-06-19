@@ -26,7 +26,6 @@ export class AuthGuard implements CanActivate {
   if (skipAuth) return true;
 
   const token = String(request.headers?.authorization).split(' ')[1];
-   console.log(token);
   if (!token) throw new UnauthorizedException();
   let userData: TokenType;
   try {
@@ -43,7 +42,6 @@ export class AuthGuard implements CanActivate {
     undefined,
     false,
    );
-   console.log(user);
    
    if (!user) throw new UnauthorizedException();
 
