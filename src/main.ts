@@ -5,19 +5,28 @@ import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 import { AuditLogs } from './modules/auditLogs/entities/auditLogs.entity';
 import { ConvertNumberPersionToNumberLatinPipe } from './shared/pipes/convert-number-persion-to-number-latin.pipe';
+import { join } from 'path';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import * as express from 'express';
 async function bootstrap() {
- const app = await NestFactory.create(AppModule);
+ const app = await NestFactory.create<NestExpressApplication>(AppModule);
  app.use(helmet());
  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
  //  app.use(csrf());
- app.enableCors({
-  origin: 'http://localhost:5173',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-  credentials: true,
-  preflightContinue: false,
-  optionsSuccessStatus: 204,
- });
+ app.enableCors(
+  process.env.NODE_ENV
+   ? {
+      origin: 'http://localhost:5173',
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+      credentials: true,
+      preflightContinue: false,
+      optionsSuccessStatus: 204,
+     }
+   : undefined,
+ );
+ app.use(express.static(join(process.cwd(), 'public')));
+
  app.useGlobalPipes(
   new ConvertNumberPersionToNumberLatinPipe(),
   new ValidationPipe({

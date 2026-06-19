@@ -16,7 +16,9 @@ import { ProductsModule } from './modules/products/products.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { FilesModule } from './modules/files/files.module';
-
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+import { Request } from 'express';
 dotenv.config();
 @Module({
  imports: [
@@ -24,21 +26,37 @@ dotenv.config();
    {
     ttl: 60 * 1000,
     limit: 20,
+    skipIf: (context) => {
+     const req = context.switchToHttp().getRequest<Request>();
+     const url = req.url;
+
+     return (
+      url.includes('.js') ||
+      url.includes('.css') ||
+      url.includes('.png') ||
+      url.includes('.jpg') ||
+      url.includes('.svg') ||
+      url.includes('.ico') ||
+      url.includes('.json') ||
+      url.includes('stats.index') ||
+      url.startsWith('/assets')
+     );
+    },
    },
   ]),
 
-  JwtModule.register({ secret: process.env?.JWT_secret, global: true }),
+  JwtModule.register({ secret: process.env?.JWT_SECRET, global: true }),
   TypeOrmModule.forRoot({
    type: 'mysql',
-   host: process.env?.db_host,
+   host: process.env?.DB_HOST,
    port: 3306,
-   username: process.env?.db_user,
-   password: process.env?.db_password,
-   database: process.env?.db_database,
+   username: process.env?.DB_USER,
+   password: process.env?.DB_PASSWORD,
+   database: process.env?.DB_DATABASE,
    entities: [__dirname + '/**/*.entity{.ts,.js}'],
    namingStrategy: new SnakeNamingStrategy(),
-//    synchronize: true,
-//    dropSchema: true,
+   //    synchronize: true,
+   //    dropSchema: true,
   }),
 
   AuthModule,
@@ -49,7 +67,12 @@ dotenv.config();
   CategoriesModule,
   DashboardModule,
   FilesModule,
- ],
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+  ServeStaticModule.forRoot({
+   rootPath: join(__dirname, 'public'),
+   exclude: ['/api/*', '/assets/*', '*.json'],
+  }) as any,
+ ] as const,
  controllers: [AppController],
  providers: [
   AppService,
