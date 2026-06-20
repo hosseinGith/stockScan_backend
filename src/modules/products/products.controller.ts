@@ -28,15 +28,18 @@ import SkipAuth from 'src/shared/decorators/skip-auth.decorator';
 export class ProductsController {
  constructor(private readonly productsService: ProductsService) {}
 
+ @SkipAuth()
  @Get('search')
  async search(@Query(ValidationPipe) filterDto: FilterProductsDto) {
   return this.productsService.filterProducts(filterDto);
  }
+ @SkipAuth()
  @Get('stats')
  getStats() {
   return this.productsService.getStats();
  }
 
+ @SkipAuth()
  @SkipAuth()
  @Get('getProductInfoFromWebByBarcode')
  getProductInfoFromWebByBarcode(@Query('barcode') barcode: string) {
@@ -47,11 +50,13 @@ export class ProductsController {
   return this.productsService.create(createProductDto);
  }
 
+ @SkipAuth()
  @Get()
  findAll() {
   return this.productsService.findAll();
  }
 
+ @SkipAuth()
  @Get(':id')
  findOne(@Param('id') id: string) {
   return this.productsService.findOne({

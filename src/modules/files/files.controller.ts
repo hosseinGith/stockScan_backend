@@ -21,6 +21,7 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 import { AccessGuard } from 'src/shared/guards/access.guard';
 import { Access } from 'src/shared/decorators/access.decorator';
 import { Role } from '../users/types';
+import SkipAuth from 'src/shared/decorators/skip-auth.decorator';
 
 @Controller('/api/files')
 @ApiBearerAuth()
@@ -41,6 +42,7 @@ export class FilesController {
   if (!file) throw new BadRequestException('فایلی برای آپلود وجود ندارد');
   return this.filesService.create(file, request.user.id, subFolder);
  }
+ @SkipAuth()
  @Get(':filename')
  async serveFile(@Param('filename') filename: string, @Res() res: Response) {
   try {
@@ -61,6 +63,7 @@ export class FilesController {
    }
   }
  }
+ @SkipAuth()
  @Get('info/:filename')
  async getFileInfo(@Param('filename') filename: string) {
   return this.filesService.getFileInfo(filename);

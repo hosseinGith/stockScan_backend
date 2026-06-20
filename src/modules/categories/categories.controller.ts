@@ -16,11 +16,12 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 import { AccessGuard } from 'src/shared/guards/access.guard';
 import { Access } from 'src/shared/decorators/access.decorator';
 import { Role } from '../users/types';
+import SkipAuth from 'src/shared/decorators/skip-auth.decorator';
 
 @Controller('api/categories')
 @ApiBearerAuth()
 @Access(Role.ADMIN)
-@UseGuards(AuthGuard,AccessGuard)
+@UseGuards(AuthGuard, AccessGuard)
 export class CategoriesController {
  constructor(private readonly categoriesService: CategoriesService) {}
 
@@ -29,11 +30,13 @@ export class CategoriesController {
   return this.categoriesService.create(createCategoryDto);
  }
 
+ @SkipAuth()
  @Get()
  findAll() {
   return this.categoriesService.findAll();
  }
 
+ @SkipAuth()
  @Get(':id')
  findOne(@Param('id') id: string) {
   return this.categoriesService.findOne({ where: { id } });

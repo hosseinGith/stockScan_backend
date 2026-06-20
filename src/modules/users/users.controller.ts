@@ -22,6 +22,7 @@ import { Access } from 'src/shared/decorators/access.decorator';
 import { AccessGuard } from 'src/shared/guards/access.guard';
 import { UserDtoAdd } from './dto/user-add.dto';
 import { Role } from './types';
+import SkipAuth from 'src/shared/decorators/skip-auth.decorator';
 
 @Controller('/api/users')
 @ApiBearerAuth()
@@ -31,14 +32,17 @@ import { Role } from './types';
 @UseInterceptors(DecryptUserData)
 export class UsersController {
  constructor(private readonly users: UsersService) {}
+ @SkipAuth()
  @Get('/profile')
  getProfile(@Req() request: Request) {
   return this.users.getProfile(request.user.id);
  }
+ @SkipAuth()
  @Get(':id')
  findOne(@Param('id') id: string) {
   return this.users.findOne(id);
  }
+ @SkipAuth()
  @Get()
  findAll() {
   return this.users.findAllByWhere();
