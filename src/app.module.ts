@@ -67,10 +67,10 @@ dotenv.config();
   CategoriesModule,
   DashboardModule,
   FilesModule,
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
   ServeStaticModule.forRoot({
    rootPath: join(__dirname, 'public'),
-   exclude: ['/api/*', '/assets/*', '*.json'],
+   renderPath: '*path',
+   exclude: ['/api*path'],
   }) as any,
  ] as const,
  controllers: [AppController],

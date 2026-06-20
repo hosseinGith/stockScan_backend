@@ -24,7 +24,7 @@ import { UserDtoAdd } from './dto/user-add.dto';
 import { Role } from './types';
 import SkipAuth from 'src/shared/decorators/skip-auth.decorator';
 
-@Controller('/api/users')
+@Controller('/users')
 @ApiBearerAuth()
 @UsePipes(HashUserData)
 @Access(Role.ADMIN)

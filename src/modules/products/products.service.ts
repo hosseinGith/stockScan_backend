@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+ BadRequestException,
+ Injectable,
+ NotFoundException,
+} from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Products } from './entities/products.entity';
@@ -294,12 +298,16 @@ export class ProductsService {
  }
 
  async getProductInfoFromWebByBarcode(barcode: string) {
-  const response = await axios.get(
-   `https://www.irancode.ir/01/${barcode.trim()}`,
-  );
-  const html = response.data as string;
+  try {
+   const response = await axios.get(
+    `https://www.irancode.ir/01/${barcode.trim()}`,
+   );
+   const html = response.data as string;
 
-  return this.extractProductInfo(html);
+   return this.extractProductInfo(html);
+  } catch {
+   throw new BadRequestException();
+  }
  }
  async update(id: string, updateProductDto: UpdateProductDto) {
   const [category, imageInfo] = await Promise.all([

@@ -15,7 +15,7 @@ import { type Request, type Response } from 'express';
 import RegisterDto from './dto/register.dto';
 
 @ApiTags('Authentication')
-@Controller('/api/auth')
+@Controller('/auth')
 @UsePipes(HashUserData)
 export class AuthController {
  constructor(private readonly authService: AuthService) {}

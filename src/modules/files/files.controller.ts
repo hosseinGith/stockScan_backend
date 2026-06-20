@@ -23,7 +23,7 @@ import { Access } from 'src/shared/decorators/access.decorator';
 import { Role } from '../users/types';
 import SkipAuth from 'src/shared/decorators/skip-auth.decorator';
 
-@Controller('/api/files')
+@Controller('/files')
 @ApiBearerAuth()
 @Access(Role.ADMIN)
 @UseGuards(AuthGuard, AccessGuard)

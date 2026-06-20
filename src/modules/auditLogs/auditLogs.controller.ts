@@ -4,7 +4,7 @@ import { AuthGuard } from 'src/shared/guards/auth.guard';
 import { Access } from 'src/shared/decorators/access.decorator';
 import { AccessGuard } from 'src/shared/guards/access.guard';
 import { Role } from '../users/types';
-@Controller('/api/auditLogsMedical')
+@Controller('/auditLogsMedical')
 @Access(Role.ADMIN)
 @UseGuards(AuthGuard, AccessGuard)
 @ApiBearerAuth()

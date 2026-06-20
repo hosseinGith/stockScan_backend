@@ -26,6 +26,7 @@ async function bootstrap() {
    : undefined,
  );
  app.use(express.static(join(process.cwd(), 'public')));
+ app.setGlobalPrefix('api');
 
  app.useGlobalPipes(
   new ConvertNumberPersionToNumberLatinPipe(),

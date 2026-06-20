@@ -21,7 +21,7 @@ import { Access } from 'src/shared/decorators/access.decorator';
 import { Role } from '../users/types';
 import SkipAuth from 'src/shared/decorators/skip-auth.decorator';
 
-@Controller('api/products')
+@Controller('/products')
 @ApiBearerAuth()
 @Access(Role.ADMIN)
 @UseGuards(AuthGuard, AccessGuard)

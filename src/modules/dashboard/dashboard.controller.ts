@@ -7,7 +7,7 @@ import { Access } from 'src/shared/decorators/access.decorator';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import SkipAuth from 'src/shared/decorators/skip-auth.decorator';
 
-@Controller('api/dashboard')
+@Controller('/dashboard')
 @ApiBearerAuth()
 @Access(Role.ADMIN)
 @UseGuards(AuthGuard, AccessGuard)

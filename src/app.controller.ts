@@ -9,25 +9,24 @@ import { NextFunction, Response } from 'express';
 export class AppController {
  constructor(private readonly appService: AppService) {}
 
- @Get('*')
- serveReactApp(
-  @Req() req: Request,
-  @Res() res: Response,
-  @Next() next: NextFunction,
- ) {
-  const url = req.url;
-  console.log(url);
+//  @Get('*')
+//  serveReactApp(
+//   @Req() req: Request,
+//   @Res() res: Response,
+//   @Next() next: NextFunction,
+//  ) {
+//   const url = req.url;
 
-  if (
-   url.startsWith('/api') ||
-   url.startsWith('/assets') ||
-   url.includes('stats.index') ||
-   url.includes('stats.json')
-  ) {
-   next();
-   return;
-  }
+//   if (
+//    url.startsWith('/api') ||
+//    url.startsWith('/assets') ||
+//    url.includes('stats.index') ||
+//    url.includes('stats.json')
+//   ) {
+//    next();
+//    return;
+//   }
 
-  res.sendFile(join(__dirname, 'public', 'index.html'));
- }
+//   res.sendFile(join(__dirname, 'public', 'index.html'));
+//  }
 }
