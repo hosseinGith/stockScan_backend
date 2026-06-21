@@ -13,6 +13,8 @@ export class ProductResponseDto {
  categoryId: string | null;
  category: Category | null;
  categoryName?: string | null;
+ fileName?: string | null;
+ 
  createdAt: Date;
  updatedAt: Date;
 
@@ -31,6 +33,7 @@ export class ProductResponseDto {
   this.description = product.description;
   this.categoryId = product.category.id || null;
   this.categoryName = product.category?.name || null;
+  this.fileName = product?.image?.fileName || null;
   this.createdAt = product.createdAt;
   this.updatedAt = product.updatedAt;
 

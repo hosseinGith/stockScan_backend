@@ -8,13 +8,52 @@ import { ConvertNumberPersionToNumberLatinPipe } from './shared/pipes/convert-nu
 import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import * as express from 'express';
+
 async function bootstrap() {
  const app = await NestFactory.create<NestExpressApplication>(AppModule);
- app.use(helmet());
- // eslint-disable-next-line @typescript-eslint/no-unsafe-call
- //  app.use(csrf());
+
+ app.use(
+  helmet({
+   contentSecurityPolicy: {
+    directives: {
+     defaultSrc: ["'self'"],
+     scriptSrc: ["'self'", "'wasm-unsafe-eval'"],
+     scriptSrcAttr: ["'none'"],
+     styleSrc: ["'self'", "'unsafe-inline'", 'https://cdnjs.cloudflare.com'],
+     fontSrc: ["'self'", 'https:', 'data:'],
+     imgSrc: ["'self'", 'data:', 'blob:'],
+     mediaSrc: ["'self'", 'blob:'],
+     connectSrc: [
+      "'self'",
+      'https://fastly.jsdelivr.net',
+      'https://cdn.jsdelivr.net',
+     ],
+     workerSrc: ["'self'", 'blob:'],
+     objectSrc: ["'none'"],
+     baseUri: ["'self'"],
+     formAction: ["'self'"],
+     frameAncestors: ["'self'"],
+     upgradeInsecureRequests: [],
+    },
+   },
+  }),
+ );
+
+ // static files با هدر CSP
+ app.use(
+  express.static(join(process.cwd(), 'public'), {
+   setHeaders: (res) => {
+    res.setHeader(
+     'Content-Security-Policy',
+     "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' https: data:; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self'; worker-src 'self' blob:; object-src 'none';",
+    );
+   },
+  }),
+ );
+
+ // بقیه کد دست نخورده
  app.enableCors(
-  process.env.NODE_ENV
+  process.env.NODE_ENV === 'dev'
    ? {
       origin: 'http://localhost:5173',
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -25,9 +64,8 @@ async function bootstrap() {
      }
    : undefined,
  );
- app.use(express.static(join(process.cwd(), 'public')));
- app.setGlobalPrefix('api');
 
+ app.setGlobalPrefix('api');
  app.useGlobalPipes(
   new ConvertNumberPersionToNumberLatinPipe(),
   new ValidationPipe({
@@ -37,6 +75,7 @@ async function bootstrap() {
    transformOptions: { enableImplicitConversion: true },
   }),
  );
+
  const config = new DocumentBuilder()
   .setTitle('nest practice')
   .setDescription('API description')
@@ -47,10 +86,9 @@ async function bootstrap() {
   extraModels: [AuditLogs],
  });
  SwaggerModule.setup('/documentation', app, document, {
-  swaggerOptions: {
-   persistAuthorization: true,
-  },
+  swaggerOptions: { persistAuthorization: true },
  });
+
  await app.listen(process.env.PORT ?? 3000);
 }
 void bootstrap();

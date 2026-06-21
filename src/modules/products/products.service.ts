@@ -25,7 +25,7 @@ import {
 } from './dto/filter-products.dto';
 import { ProductResponseDto } from './dto/product-response.dto';
 import { FilesService } from '../files/files.service';
-import axios from 'node_modules/axios';
+import axios from 'axios';
 
 @Injectable()
 export class ProductsService {
@@ -64,6 +64,7 @@ export class ProductsService {
   let queryBuilder = this.products
    .createQueryBuilder('product')
    .leftJoinAndSelect('product.category', 'category')
+   .leftJoinAndSelect('product.image', 'image')
    .where('product.isActive = :isActive', { isActive: true });
 
   if (search) {
