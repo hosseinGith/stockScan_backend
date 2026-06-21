@@ -41,7 +41,7 @@ async function bootstrap() {
 
  // static files با هدر CSP
  app.use(
-  express.static(join(process.cwd(), 'public'), {
+  express.static(join(process.cwd(), '..', 'public'), {
    setHeaders: (res) => {
     res.setHeader(
      'Content-Security-Policy',

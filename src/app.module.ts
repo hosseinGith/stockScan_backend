@@ -68,7 +68,7 @@ dotenv.config();
   DashboardModule,
   FilesModule,
   ServeStaticModule.forRoot({
-   rootPath: join(__dirname, 'public'),
+   rootPath: join(__dirname, '..', 'public'),
    renderPath: '*path',
    exclude: ['/api*path'],
   }) as any,
