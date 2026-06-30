@@ -38,6 +38,6 @@ export class Users {
  is_active!: boolean;
  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
  created_at!: Date;
- @Column()
- national_id_hash!: string;
+ @Column({ nullable: true, default: '' })
+ national_id_hash?: string;
 }
