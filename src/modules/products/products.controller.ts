@@ -41,8 +41,8 @@ export class ProductsController {
 
  @SkipAuth()
  @SkipAuth()
- @Get('getProductInfoFromWebByBarcode')
- getProductInfoFromWebByBarcode(@Query('barcode') barcode: string) {
+ @Get('barcode/:barcode')
+ getProductInfoFromWebByBarcode(@Param('barcode') barcode: string) {
   return this.productsService.getProductInfoFromWebByBarcode(barcode);
  }
  @Post()
